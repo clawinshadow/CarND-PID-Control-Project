@@ -31,3 +31,26 @@ To solve this problem, we add together all the history CTEs, then multiply it wi
     integral_cte += cte
     -tau_i * integral_cte
     ```
+    
+Finally, we add these 3 components together to get the next steer value, that's the PID control algorithm.
+    
+    ```
+    steer = -tau * cte - tau_d * cte_d - tau_i * integral_cte
+    ```
+
+## Hyperparameters Tuning
+The most difficult part of this project should be how to choose the 3 factors of P-I-D components (`Kp, Kd, Ki`). I tuned them manually, steps as below:
+1. __Kp__: keep the other 2 params(__Ki, Kd__) as zero, first we need to know which value of __Kp__ is probably right. 
+    * If it's too small, the car will never reach to the reference/center line, it will be always moving near to the edge or even out of lane in simualtor, you can reach to `p_0.02.mov` to see a video when Kp is too small.   
+    * If it's too large, the car's steering value is always bigger than it should be, it oscillates around the center line drastically, that is, the overshooting problem happens at the very beginning, refer to `p_0.2.mov`
+    
+    After several times of trying, I find out a __Kp__ in range of (0.045, 0.06) should be acceptable.
+    
+2. __Kd__: despite __Kp__ is fine tuned, it's not enough, the overshooting problem still exists, except that happens later. So we need to tune __kd__ to counteracts the oscillation, a range of (1.4, 1.5) should be fine, refer to `p_0.05_d_1.5.mov`
+
+3. __Ki__: it's basically a parallel shift to the car's track, I tuned this parameter mainly to avoid driving out of the lane edge, a range of (0.0002, 0.0003) should be fine.
+
+Continue tuning these 3 coefficients together to make the car's control more smooth, and more safe, the final result as below
+```
+pid.Init(0.055, 0.0002, 1.35);
+```
